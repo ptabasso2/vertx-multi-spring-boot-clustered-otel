@@ -1,70 +1,73 @@
-# Vert.x Distributed Tracing with DataDog
+# Vert.x distributed tracing with Datadog
 
 This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **DataDog** with **OpenTelemetry API** for trace context propagation.
 
-## 🏗️ Architecture Overview
+## 🏗️ Architecture overview
 
 ```
-[HTTP Request] → [Producer Service] → [Event Bus + Trace Injection] → [Consumer Service]
+[HTTP Request] → [Producer application] → [Event bus + Trace injection] → [Consumer application]
                        ↓                                                      ↓
-                [DataDog Agent] ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← [DataDog Agent]
+                [Datadog Agent] ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← [Datadog Agent]
                        ↓                                                      ↓
-                            [DataDog Backend - Unified Trace View]
+                            [Datadog backend - Unified trace view]
 ```
 
 ## 📋 Prerequisites
 
-### Required Software
+### Required software
 - **Java 17+**
-- **Docker & Docker Compose**
-- **DataDog Agent** (running and accessible)
+- **Docker & Docker compose**
+- **Datadog agent** (running and accessible)
 - **wget** (for downloading DataDog Java agent)
 
-### DataDog Setup
-1. **DataDog Account**: Active DataDog account with APM enabled
-2. **DataDog Agent**: Running on your system (listening on port 8126)
+### Datadog setup
+1. **Datadog account**: Having the corresponding API key
+2. **Datadog agent**: Running on your system (listening on port 8126)
    ```bash
-   # Example DataDog agent setup
-   docker run -d --name datadog-agent \
-     -e DD_API_KEY=<your-api-key> \
-     -e DD_APM_ENABLED=true \
-     -e DD_APM_NON_LOCAL_TRAFFIC=true \
-     -p 8126:8126 \
-     -p 8125:8125/udp \
-     datadog/agent:latest
+   # Example Datadog agent setup
+   docker run -d --cgroupns host \
+              --pid host \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              -v /proc/:/host/proc/:ro \
+              -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
+              -p 127.0.0.1:8126:8126/tcp \
+              -e DD_API_KEY=<DATADOG_API_KEY> \
+              -e DD_APM_ENABLED=true \
+              -e DD_SITE=<DATADOG_SITE> \
+              gcr.io/datadoghq/agent:latest
    ```
 
 ## 📁 Project Structure
 
 ```
-vertx-multi-spring-boot-clustered/
-├── dd-java-agent.jar                    # ← DataDog Java agent (auto-downloaded)
+vertx-multi-spring-boot-clustered-otel/
+├── dd-java-agent.jar                    # ← Datadog java agent (auto-downloaded)
 ├── docker-compose.yml                   # ← Container orchestration
-├── producer-app/                        # ← HTTP API + Message Producer
+├── producer-app/                        # ← HTTP API + Message producer
 │   ├── src/main/java/com/datadoghq/pej/producer/
 │   │   ├── ProducerApplication.java     # ← OpenTelemetry bean configuration
 │   │   ├── ProducerVerticle.java        # ← Trace context injection
 │   │   ├── GreetingVerticle.java
 │   │   └── HttpServerVerticle.java
 │   ├── build.gradle.kts                 # ← OpenTelemetry API dependency
-│   └── Dockerfile                       # ← DataDog agent integration
-└── consumer-app/                        # ← Message Consumer
+│   └── Dockerfile                       # ← Datadog agent integration
+└── consumer-app/                        # ← Message consumer
     ├── src/main/java/com/datadoghq/pej/consumer/
     │   ├── ConsumerApplication.java     # ← OpenTelemetry bean configuration
     │   └── ConsumerVerticle.java        # ← Trace context extraction
     ├── build.gradle.kts                 # ← OpenTelemetry API dependency
-    └── Dockerfile                       # ← DataDog agent integration
+    └── Dockerfile                       # ← Datadog agent integration
 ```
 
 ## 🔍 Key Implementation Highlights
 
 ### 1. OpenTelemetry Bean Configuration
-Both applications configure OpenTelemetry to use DataDog agent:
+Both applications configure OpenTelemetry to use Datadog agent:
 
 ```java
 @Bean
 public OpenTelemetry openTelemetry() {
-    // DataDog agent provides the implementation
+    // Datadog agent provides the implementation
     return GlobalOpenTelemetry.get();
 }
 ```
@@ -99,15 +102,25 @@ Span consumerSpan = tracer.spanBuilder("consumer.process_message")
     .startSpan();
 ```
 
-### 4. DataDog Agent Integration
-Applications run with DataDog Java agent for automatic instrumentation:
+### 4. Datadog agent integration
+Applications run with the Datadog java agent for automatic instrumentation and the custom instrumentation part is done using the OpenTelemetry API:
 
-```dockerfile
-ENV JAVA_OPTS="-javaagent:dd-java-agent.jar"
-ENV DD_SERVICE=producer-service
-ENV DD_AGENT_HOST=datadog-agent
-ENV DD_TRACE_AGENT_PORT=8126
+```docker-compose.yml
+...
+    environment:
+      # Spring Boot profiles
+      - SPRING_PROFILES_ACTIVE=docker
+      # JVM settings for containerized environment
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      # Hazelcast network configuration
+      - HAZELCAST_NETWORK_JOIN_MULTICAST_ENABLED=false
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_ENABLED=true
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_MEMBERS=consumer-app,producer-app
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/dd-java-agent.jar -Ddd.agent.host=dd-agent-dogfood-jmx -Ddd.service=consumer-app -Ddd.env=dev -Ddd.version=12 -Ddd.trace.otel.enabled=true -Ddd.trace.sample.rate=1 -Ddd.logs.injection=true -Ddd.profiling.enabled=true -XX:FlightRecorderOptions=stackdepth=256 -Ddd.tags=env:dev
+...
 ```
+
+The `JAVA_TOOL_OPTIONS` env variable contains the necessary options to configure the Datadog java agent. 
 
 ### 5. Span Creation with Attributes
 Custom spans include business context for better observability:
@@ -121,16 +134,18 @@ Span span = tracer.spanBuilder("producer.send_message")
 
 ## 🚀 How to Build
 
-### 1. Download DataDog Agent (Automated)
+### 1. Download the Datadog agent (Automated)
 ```bash
-# Run the setup script (handles agent download + build)
+# Make sure to export your API key before running the script. Run the setup script (handles agent download + build)
+
+export DD_API_KEY=<your API key>
 chmod +x docker-setup.sh
 ./docker-setup.sh
 ```
 
-### 2. Manual Build Process
+### 2. Manual build process
 ```bash
-# Download DataDog Java agent
+# Download the Datadog java agent
 wget -O dd-java-agent.jar 'https://dtdg.co/latest-java-tracer'
 
 # Build consumer application
@@ -148,20 +163,24 @@ docker-compose build
 docker-compose up -d
 ```
 
-## 🧪 How to Test
+## 🧪 How to test
 
-### 1. Verify Services are Running
+### 1. Verify services are running
 ```bash
 # Check container status
 docker-compose ps
 
 # Expected output:
-#   Name                 State           Ports
-# vertx-consumer        Up             
-# vertx-producer        Up             0.0.0.0:8080->8080/tcp
+[root@pt-instance-2:~/vertx/vertx-multi-spring-boot-clustered-otel]$ docker-compose ps
+        Name                      Command                   State                                                  Ports                                          
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+dd-agent-dogfood-jmx   /bin/entrypoint.sh               Up (healthy)     0.0.0.0:8125->8125/tcp,:::8125->8125/tcp, 8125/udp,                                      
+                                                                         0.0.0.0:8126->8126/tcp,:::8126->8126/tcp                                                 
+vertx-consumer         sh -c java $JAVA_OPTS -jar ...   Up (healthy)   8081/tcp                                                                                 
+vertx-producer         sh -c java $JAVA_OPTS -jar ...   Up (healthy)     0.0.0.0:8080->8080/tcp,:::8080->8080/tcp         
 ```
 
-### 2. Test Basic Functionality
+### 2. Test basic functionality
 ```bash
 # Health check
 curl http://localhost:8080/hello
@@ -185,30 +204,66 @@ curl http://localhost:8080/produce
 ```
 Triggering message from producer...
 Injected trace context into message: {
-  "messageType": "PRODUCER_MESSAGE",
-  "payload": "Hello from Producer!",
-  "timestamp": 1703123456789,
-  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+  "messageType" : "PRODUCER_MESSAGE",
+  "payload" : "Hello from Producer!",
+  "timestamp" : 1748713257621,
+  "x-datadog-trace-id" : "8353280935377654141",
+  "x-datadog-parent-id" : "4454626395321405223",
+  "x-datadog-sampling-priority" : "2",
+  "x-datadog-tags" : "_dd.p.dm=-3,_dd.p.tid=683b3f2900000000",
+  "traceparent" : "00-683b3f290000000073ecd0c0ce3a517d-3dd2031adc360f27-01",
+  "tracestate" : "dd=s:2;p:3dd2031adc360f27;t.dm:-3;t.tid:683b3f2900000000"
 }
-Producer received reply from consumer: {...}
+Traced reply sent: Message triggered successfully
+Producer received reply from consumer: {"messageType":"CONSUMER_REPLY","payload":"Message processed successfully by consumer at 1748713257678","originalMessageType":"PRODUCER_MESSAGE","processingTime":57,"x-datadog-trace-id":"8353280935377654141","x-datadog-parent-id":"7356796356717382617","x-datadog-sampling-priority":"2","x-datadog-tags":"_dd.p.dm=-3,_dd.p.tid=683b3f2900000000","traceparent":"00-683b3f290000000073ecd0c0ce3a517d-6618974ef7070bd9-01","tracestate":"dd=t.dm:-3;t.tid:683b3f2900000000"}
 ```
 
 **Consumer logs should show:**
+
 ```
 Consumer received message: {
-  "messageType": "PRODUCER_MESSAGE",
-  "payload": "Hello from Producer!",
-  "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+  "messageType" : "PRODUCER_MESSAGE",
+  "payload" : "Hello from Producer!",
+  "timestamp" : 1748713257621,
+  "x-datadog-trace-id" : "8353280935377654141",
+  "x-datadog-parent-id" : "4454626395321405223",
+  "x-datadog-sampling-priority" : "2",
+  "x-datadog-tags" : "_dd.p.dm=-3,_dd.p.tid=683b3f2900000000",
+  "traceparent" : "00-683b3f290000000073ecd0c0ce3a517d-3dd2031adc360f27-01",
+  "tracestate" : "dd=s:2;p:3dd2031adc360f27;t.dm:-3;t.tid:683b3f2900000000"
 }
 Consumer processing payload: Hello from Producer!
-Consumer sent reply with trace context: {...}
+Message processing completed for type: PRODUCER_MESSAGE
+Consumer sent reply with trace context: {
+  "messageType" : "CONSUMER_REPLY",
+  "payload" : "Message processed successfully by consumer at 1748713257678",
+  "originalMessageType" : "PRODUCER_MESSAGE",
+  "processingTime" : 57,
+  "x-datadog-trace-id" : "8353280935377654141",
+  "x-datadog-parent-id" : "7356796356717382617",
+  "x-datadog-sampling-priority" : "2",
+  "x-datadog-tags" : "_dd.p.dm=-3,_dd.p.tid=683b3f2900000000",
+  "traceparent" : "00-683b3f290000000073ecd0c0ce3a517d-6618974ef7070bd9-01",
+  "tracestate" : "dd=t.dm:-3;t.tid:683b3f2900000000"
+}
 ```
 
-### 5. View Traces in DataDog
+### 5. View Traces in Datadog
 
-1. **Open DataDog APM**: Navigate to APM → Traces in your DataDog dashboard
-2. **Search for Services**: Look for `producer-service` and `consumer-service`
-3. **View Distributed Trace**: Click on a trace to see the full request flow
+1. **Open the Datadog UI**: Navigate to APM → Traces in the UI
+2. **Search for services**: Look for `producer-app` and `consumer-app`
+3. **View Distributed trace**: Click on a trace to see the full request flow
+
+<p align="left">
+  <img src="img/vertx1.png" width="650" />
+</p>
+
+
+
+<p align="left">
+  <img src="img/vertx2.png" width="650" />
+</p>
+
 
 **Expected Trace Structure:**
 ```
@@ -227,11 +282,11 @@ http.produce (Root Span - HTTP Request)
 
 ## 🔧 Debugging
 
-### Check DataDog Agent Connectivity
+### Check Datadog Agent Connectivity
 ```bash
 # Verify agent is receiving traces
 curl http://localhost:8126/info
-# Should return DataDog agent info
+# Should return Datadog agent info
 
 # Check agent logs
 docker logs datadog-agent | grep -i trace
@@ -251,16 +306,16 @@ docker-compose logs -f
 
 ### Common Issues
 
-1. **No Traces in DataDog**: Check agent connectivity and API key
+1. **No Traces in Datadog**: Check agent connectivity and API key
 2. **Broken Trace Continuity**: Verify trace context injection/extraction
 3. **Missing Spans**: Check that spans are properly ended in `finally` blocks
 4. **Wrong Service Names**: Verify `DD_SERVICE` environment variables
 
-## 📊 Expected DataDog Metrics
+## 📊 Expected Datadog Metrics
 
 Once running successfully, you should see:
 
-- **Services**: `producer-service`, `consumer-service` in DataDog APM
+- **Services**: `producer-service`, `consumer-service` in Datadog APM
 - **Throughput**: Request rate metrics for `/produce` endpoint
 - **Latency**: P50, P95, P99 latency distributions
 - **Error Rate**: Success/failure rates for distributed operations
@@ -272,7 +327,7 @@ Once running successfully, you should see:
 ✅ **HTTP Endpoints**: All endpoints respond correctly  
 ✅ **Event Bus Communication**: Producer and consumer exchange messages  
 ✅ **Trace Propagation**: Same trace ID appears in both services  
-✅ **DataDog Integration**: Traces visible in DataDog APM dashboard  
+✅ **Datadog Integration**: Traces visible in Datadog APM dashboard  
 ✅ **Distributed Spans**: Complete request flow from HTTP → Producer → Consumer
 
 When all success criteria are met, you'll have a fully functional distributed tracing setup showing end-to-end request flows across your microservices architecture! 🎉

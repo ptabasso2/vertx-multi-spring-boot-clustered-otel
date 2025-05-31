@@ -1,0 +1,7 @@
+# Project exclude paths
+/consumer-app/.gradle/
+/consumer-app/build/
+/consumer-app/build/classes/java/main/
+/producer-app/.gradle/
+/producer-app/build/
+/producer-app/build/classes/java/main/
