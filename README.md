@@ -12,8 +12,7 @@ This project demonstrates distributed tracing across microservices using **Vert.
                             [Datadog backend - Unified trace view]
 ```
 
-
-### Event Bus Message Flow
+### Event bus message flow
 
 ```
 HTTP GET /produce
@@ -29,7 +28,7 @@ ProducerVerticle (receives reply)
 HttpServerVerticle (responds to HTTP)
 ```
 
-### Event Bus Communication Levels
+### Event bus communication levels
 
 1. **Local Event Bus** (`producer.trigger`)
     - Communication within producer application
@@ -41,21 +40,21 @@ HttpServerVerticle (responds to HTTP)
     - Cross-network, different JVMs
     - Manual trace context injection/extraction required
 
-### Separation of Concerns
+### Goal of each components
 
 - **HttpServerVerticle**: Handles HTTP protocol concerns
 - **ProducerVerticle**: Handles business logic and cross-service communication
 - **ConsumerVerticle**: Handles message processing
 - **Event Bus**: Provides loose coupling between components
 
-### Available Endpoints
+### Available endpoints
 
 - `GET /hello` → Simple health check returning "Hello from Vert.x (Clustered)"
 - `GET /greet/{name}` → Greeting service functionality
 - `GET /produce` → **Main flow trigger** - initiates the complete distributed trace flow
 
 
-### Benefits of This Approach
+### Benefits of this approach
 
 1. Proper Vert.x pattern: Uses event bus for inter-verticle communication
 1. Clustering support: Works across multiple Vert.x instances in a cluster
@@ -64,7 +63,6 @@ HttpServerVerticle (responds to HTTP)
 1. Asynchronous: Non-blocking communication
 
 Now when you hit http://localhost:8080/produce, it will properly trigger your ProducerVerticle through the event bus!
-
 
 
 ## Prerequisites
