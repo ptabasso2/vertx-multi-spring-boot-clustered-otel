@@ -15,27 +15,21 @@ This project demonstrates distributed tracing across microservices using **Vert.
 ## Prerequisites
 
 ### Required software
-- **Java 17+**
-- **Docker & Docker compose**
-- **Datadog agent** (running and accessible)
-- **wget** (for downloading DataDog Java agent)
+- Java 17+
+- Docker & Docker compose
+- Git client
+- Datadog account with a valid API key.
+- wget (for downloading DataDog Java agent)
+- Your favorite text editor or IDE (Ex IntelliJ, VScode...)
 
-### Datadog setup
-1. **Datadog account**: Having the corresponding API key
-2. **Datadog agent**: Running on your system (listening on port 8126)
-   ```bash
-   # Example Datadog agent setup
-   docker run -d --cgroupns host \
-              --pid host \
-              -v /var/run/docker.sock:/var/run/docker.sock:ro \
-              -v /proc/:/host/proc/:ro \
-              -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
-              -p 127.0.0.1:8126:8126/tcp \
-              -e DD_API_KEY=<DATADOG_API_KEY> \
-              -e DD_APM_ENABLED=true \
-              -e DD_SITE=<DATADOG_SITE> \
-              gcr.io/datadoghq/agent:latest
-   ```
+
+### Clone the repository
+
+```bash
+[root@pt-instance-2:~/]$ git clone https://github.com/ptabasso2/vertx-multi-spring-boot-clustered-otel 
+[root@pt-instance-6:~/]$ cd vertx-multi-spring-boot-clustered-otel
+````
+
 
 ## Project structure
 
@@ -135,13 +129,15 @@ Span span = tracer.spanBuilder("producer.send_message")
 ## 🚀 How to build
 
 ### 1. Set up the environment (Automated)
+
+
 ```bash
 # Make sure to export your API key before running the script. Run the setup script (handles agent download + build)
 
-export DD_API_KEY=<your API key>
-chmod +x docker-setup.sh
-./docker-setup.sh
-```
+[root@pt-instance-2:~/vertx/vertx-multi-spring-boot-clustered-otel]$ export DD_API_KEY=<your API key>
+[root@pt-instance-2:~/vertx/vertx-multi-spring-boot-clustered-otel]$ chmod +x docker-setup.sh
+[root@pt-instance-2:~/vertx/vertx-multi-spring-boot-clustered-otel]$ ./docker-setup.sh
+````
 
 ### 2. Manual build process
 ```bash
