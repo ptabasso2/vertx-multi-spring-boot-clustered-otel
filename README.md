@@ -12,6 +12,61 @@ This project demonstrates distributed tracing across microservices using **Vert.
                             [Datadog backend - Unified trace view]
 ```
 
+
+### Event Bus Message Flow
+
+```
+HTTP GET /produce
+    ↓
+HttpServerVerticle
+    ↓ (sends to "producer.trigger")
+ProducerVerticle.triggerMessage()
+    ↓ (sends to "consumer.message" with trace context)
+ConsumerVerticle.processMessage()
+    ↓ (replies with trace context)
+ProducerVerticle (receives reply)
+    ↓ (replies to HttpServerVerticle)
+HttpServerVerticle (responds to HTTP)
+```
+
+### Event Bus Communication Levels
+
+1. **Local Event Bus** (`producer.trigger`)
+    - Communication within producer application
+    - HttpServerVerticle → ProducerVerticle
+    - Same JVM, same trace context
+
+2. **Clustered Event Bus** (`consumer.message`)
+    - Communication between producer and consumer applications
+    - Cross-network, different JVMs
+    - Manual trace context injection/extraction required
+
+### Separation of Concerns
+
+- **HttpServerVerticle**: Handles HTTP protocol concerns
+- **ProducerVerticle**: Handles business logic and cross-service communication
+- **ConsumerVerticle**: Handles message processing
+- **Event Bus**: Provides loose coupling between components
+
+### Available Endpoints
+
+- `GET /hello` → Simple health check returning "Hello from Vert.x (Clustered)"
+- `GET /greet/{name}` → Greeting service functionality
+- `GET /produce` → **Main flow trigger** - initiates the complete distributed trace flow
+
+
+### Benefits of This Approach
+
+1. Proper Vert.x pattern: Uses event bus for inter-verticle communication
+1. Clustering support: Works across multiple Vert.x instances in a cluster
+1. Loose coupling: Verticles don't need direct references to each other
+1. Error handling: Can handle cases where the producer isn't available
+1. Asynchronous: Non-blocking communication
+
+Now when you hit http://localhost:8080/produce, it will properly trigger your ProducerVerticle through the event bus!
+
+
+
 ## Prerequisites
 
 ### Required software
