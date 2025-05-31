@@ -1,4 +1,4 @@
-# Vert.x distributed tracing with Datadog
+# Vert.x distributed tracing with Datadog and the OpenTelemetry API
 
 This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **DataDog** with **OpenTelemetry API** for trace context propagation.
 
@@ -275,9 +275,9 @@ http.produce (Root Span - HTTP Request)
 ```
 
 **Expected Trace Attributes:**
-- **Service Names**: `producer-service`, `consumer-service`
-- **Operation Names**: `http.produce`, `producer.send_message`, `consumer.process_message`
-- **Custom Attributes**: `message.type`, `message.destination`, `reply.success`
+- **Service names**: `producer-service`, `consumer-service`
+- **Operation names**: `http.produce`, `producer.send_message`, `consumer.process_message`
+- **Custom attributes**: `message.type`, `message.destination`, `reply.success`
 - **Trace ID**: Same across all spans (e.g., `4bf92f3577b34da6a3ce929d0e0e4736`)
 
 ## 🔧 Debugging
@@ -307,27 +307,27 @@ docker-compose logs -f
 ### Common Issues
 
 1. **No Traces in Datadog**: Check agent connectivity and API key
-2. **Broken Trace Continuity**: Verify trace context injection/extraction
-3. **Missing Spans**: Check that spans are properly ended in `finally` blocks
-4. **Wrong Service Names**: Verify `DD_SERVICE` environment variables
+2. **Broken traces**: Verify trace context injection/extraction
+3. **Missing spans**: Check that spans are properly ended in `finally` blocks
+4. **Wrong service names**: Ex verify `DD_SERVICE` environment variables
 
-## 📊 Expected Datadog Metrics
+## Expected Datadog Metrics
 
 Once running successfully, you should see:
 
-- **Services**: `producer-service`, `consumer-service` in Datadog APM
+- **Services**: `producer-app`, `consumer-app` in the Datadog APM UI
 - **Throughput**: Request rate metrics for `/produce` endpoint
 - **Latency**: P50, P95, P99 latency distributions
-- **Error Rate**: Success/failure rates for distributed operations
-- **Service Map**: Visual representation of producer → consumer communication
+- **Error rate**: Success/failure rates for distributed operations
+- **Service map**: Visual representation of producer → consumer communication
 
-## 🎯 Success Criteria
+## Success Criteria
 
-✅ **Containers Running**: Both services start without errors  
-✅ **HTTP Endpoints**: All endpoints respond correctly  
-✅ **Event Bus Communication**: Producer and consumer exchange messages  
-✅ **Trace Propagation**: Same trace ID appears in both services  
-✅ **Datadog Integration**: Traces visible in Datadog APM dashboard  
-✅ **Distributed Spans**: Complete request flow from HTTP → Producer → Consumer
+✅ **Containers running**: Both services start without errors  
+✅ **HTTP endpoints**: All endpoints respond correctly  
+✅ **Event Bus communication**: Producer and consumer exchange messages  
+✅ **Trace propagation**: Same trace ID appears in both services  
+✅ **Datadog integration**: Traces visible in Datadog APM UI (Trace explorer)  
+✅ **Distributed trace**: Complete request flow from HTTP → Producer → Consumer
 
-When all success criteria are met, you'll have a fully functional distributed tracing setup showing end-to-end request flows across your microservices architecture! 🎉
+When all success criteria are met, a functional distributed tracing setup showing end-to-end request flows across this microservices architecture will be in place.

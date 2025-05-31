@@ -5,3 +5,7 @@
 /producer-app/.gradle/
 /producer-app/build/
 /producer-app/build/classes/java/main/
+/consumer-app/gradle/*
+/producer-app/gradle/*
+.idea/
+.gitignore
