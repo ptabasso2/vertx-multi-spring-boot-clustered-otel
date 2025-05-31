@@ -1,0 +1,41 @@
+# Consumer Docker Configuration
+# Place this file in: consumer-app/src/main/resources/application-docker.yml
+
+spring:
+  application:
+    name: consumer-app
+  main:
+    web-application-type: none
+
+server:
+  port: 0
+
+# Logging configuration for Docker
+logging:
+  level:
+    io.vertx: INFO
+    com.datadoghq.pej: DEBUG
+    com.hazelcast: WARN
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  # Remove file logging to avoid permission issues
+  # Docker will capture console output anyway
+
+# Hazelcast configuration for Docker networking
+hazelcast:
+  network:
+    join:
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: true
+        members:
+          - consumer-app
+          - producer-app
+    interfaces:
+      enabled: true
+      interfaces:
+        - 172.25.*.*  # Match Docker subnet
+  management-center:
+    enabled: false

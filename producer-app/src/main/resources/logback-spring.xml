@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Minimal, error-free configuration - Place this in: src/main/resources/logback-spring.xml -->
+<configuration>
+    <!-- Console appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Application-specific loggers -->
+    <logger name="io.vertx" level="INFO"/>
+    <logger name="com.datadoghq.pej" level="DEBUG"/>
+    <logger name="com.hazelcast" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+    <logger name="org.springframework" level="INFO"/>
+</configuration>

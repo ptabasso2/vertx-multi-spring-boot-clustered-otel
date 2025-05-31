@@ -1,0 +1,16 @@
+# Consumer Application Configuration
+spring:
+  application:
+    name: consumer-app
+  main:
+    web-application-type: none
+
+server:
+  port: 0
+
+# Logging configuration
+logging:
+  level:
+    io.vertx: INFO
+    com.datadoghq.pej: DEBUG
+    com.hazelcast: WARN

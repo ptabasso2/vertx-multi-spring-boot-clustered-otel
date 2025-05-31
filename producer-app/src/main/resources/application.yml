@@ -1,0 +1,14 @@
+# Producer Application Configuration
+spring:
+  application:
+    name: producer-app
+
+server:
+  port: 8080
+
+# Logging configuration
+logging:
+  level:
+    io.vertx: INFO
+    com.datadoghq.pej: DEBUG
+    com.hazelcast: WARN

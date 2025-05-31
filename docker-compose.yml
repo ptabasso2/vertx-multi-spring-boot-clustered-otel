@@ -1,0 +1,102 @@
+# Docker Compose for Vert.x Clustered Applications
+# Place this file in: vertx-multi-spring-boot-clustered/docker-compose.yml
+
+version: '3.8'
+
+services:
+
+  dd-agent-dogfood-jmx:
+    container_name: dd-agent-dogfood-jmx
+    image: gcr.io/datadoghq/agent:latest-jmx
+    environment:
+      - DD_HOSTNAME=datadog
+      - DD_API_KEY
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC="true"
+      - DD_LOG_LEVEL=debug
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS="name:datadog-agent"
+      - SD_JMX_ENABLE=true
+    ports:
+      - "8125:8125"
+      - "8126:8126"
+    volumes:
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - vertx-cluster
+
+
+  consumer-app:
+    build:
+      context: .
+      dockerfile: consumer-app/Dockerfile
+    image: vertx-consumer:latest
+    container_name: vertx-consumer
+    hostname: consumer-app
+    volumes:
+      - $PWD/dd-java-agent.jar:/app/dd-java-agent.jar
+    networks:
+      - vertx-cluster
+    environment:
+      # Spring Boot profiles
+      - SPRING_PROFILES_ACTIVE=docker
+      # JVM settings for containerized environment
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      # Hazelcast network configuration
+      - HAZELCAST_NETWORK_JOIN_MULTICAST_ENABLED=false
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_ENABLED=true
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_MEMBERS=consumer-app,producer-app
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/dd-java-agent.jar -Ddd.agent.host=dd-agent-dogfood-jmx -Ddd.service=consumer-app -Ddd.env=dev -Ddd.version=12 -Ddd.trace.otel.enabled=true -Ddd.trace.sample.rate=1 -Ddd.logs.injection=true -Ddd.profiling.enabled=true -XX:FlightRecorderOptions=stackdepth=256 -Ddd.tags=env:dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "java"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  producer-app:
+    build:
+      context: .
+      dockerfile: producer-app/Dockerfile
+    image: vertx-producer:latest
+    container_name: vertx-producer
+    hostname: producer-app
+    ports:
+      - "8080:8080"  # HTTP API port
+    volumes:
+      - $PWD/dd-java-agent.jar:/app/dd-java-agent.jar
+    networks:
+      - vertx-cluster
+    environment:
+      # Spring Boot profiles
+      - SPRING_PROFILES_ACTIVE=docker
+      # JVM settings for containerized environment
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      # Hazelcast network configuration
+      - HAZELCAST_NETWORK_JOIN_MULTICAST_ENABLED=false
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_ENABLED=true
+      - HAZELCAST_NETWORK_JOIN_TCP_IP_MEMBERS=consumer-app,producer-app
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/dd-java-agent.jar -Ddd.agent.host=dd-agent-dogfood-jmx -Ddd.service=producer-app -Ddd.env=dev -Ddd.version=12 -Ddd.trace.otel.enabled=true -Ddd.trace.sample.rate=1 -Ddd.logs.injection=true -Ddd.profiling.enabled=true -XX:FlightRecorderOptions=stackdepth=256 -Ddd.tags=env:dev
+    depends_on:
+      - consumer-app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/hello"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  vertx-cluster:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
