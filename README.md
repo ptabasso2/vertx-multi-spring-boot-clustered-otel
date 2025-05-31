@@ -126,7 +126,7 @@ Span span = tracer.spanBuilder("producer.send_message")
     .startSpan();
 ```
 
-## 🚀 How to build
+## 🚀 How to buil
 
 ### 1. Set up the environment (Automated)
 
