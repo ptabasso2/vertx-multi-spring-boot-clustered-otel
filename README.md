@@ -2,7 +2,7 @@
 
 This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **DataDog** with **OpenTelemetry API** for trace context propagation.
 
-## 🏗️ Architecture overview
+## Architecture overview
 
 ```
 [HTTP Request] → [Producer application] → [Event bus + Trace injection] → [Consumer application]
@@ -12,7 +12,7 @@ This project demonstrates distributed tracing across microservices using **Vert.
                             [Datadog backend - Unified trace view]
 ```
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### Required software
 - **Java 17+**
@@ -37,7 +37,7 @@ This project demonstrates distributed tracing across microservices using **Vert.
               gcr.io/datadoghq/agent:latest
    ```
 
-## 📁 Project Structure
+## Project structure
 
 ```
 vertx-multi-spring-boot-clustered-otel/
@@ -59,9 +59,9 @@ vertx-multi-spring-boot-clustered-otel/
     └── Dockerfile                       # ← Datadog agent integration
 ```
 
-## 🔍 Key Implementation Highlights
+## Key implementation highlights
 
-### 1. OpenTelemetry Bean Configuration
+### 1. OpenTelemetry bean configuration
 Both applications configure OpenTelemetry to use Datadog agent:
 
 ```java
@@ -72,7 +72,7 @@ public OpenTelemetry openTelemetry() {
 }
 ```
 
-### 2. Trace Context Injection (Producer)
+### 2. Trace context injection (Producer)
 Producer injects trace context into event bus messages:
 
 ```java
@@ -87,7 +87,7 @@ openTelemetry.getPropagators()
     .inject(Context.current(), messagePayload, SETTER);
 ```
 
-### 3. Trace Context Extraction (Consumer)
+### 3. Trace context extraction (Consumer)
 Consumer extracts trace context and continues the distributed trace:
 
 ```java
@@ -122,7 +122,7 @@ Applications run with the Datadog java agent for automatic instrumentation and t
 
 The `JAVA_TOOL_OPTIONS` env variable contains the necessary options to configure the Datadog java agent. 
 
-### 5. Span Creation with Attributes
+### 5. Span creation with attributes
 Custom spans include business context for better observability:
 
 ```java
@@ -132,9 +132,9 @@ Span span = tracer.spanBuilder("producer.send_message")
     .startSpan();
 ```
 
-## 🚀 How to Build
+## 🚀 How to build
 
-### 1. Download the Datadog agent (Automated)
+### 1. Set up the environment (Automated)
 ```bash
 # Make sure to export your API key before running the script. Run the setup script (handles agent download + build)
 
@@ -191,14 +191,14 @@ curl http://localhost:8080/greet/Alice
 # Expected: "Hi Alice, this is a Vert.x-powered greeting!"
 ```
 
-### 3. Test Distributed Tracing
+### 3. Test distributed tracing
 ```bash
 # Trigger producer-consumer communication with tracing
 curl http://localhost:8080/produce
 # Expected: "Triggered producer verticle: Message triggered successfully"
 ```
 
-### 4. Verify Trace Propagation in Logs
+### 4. Verify trace propagation in the containers logs
 
 **Producer logs should show:**
 ```
@@ -248,7 +248,7 @@ Consumer sent reply with trace context: {
 }
 ```
 
-### 5. View Traces in Datadog
+### 5. View traces in Datadog
 
 1. **Open the Datadog UI**: Navigate to APM → Traces in the UI
 2. **Search for services**: Look for `producer-app` and `consumer-app`
@@ -265,7 +265,7 @@ Consumer sent reply with trace context: {
 </p>
 
 
-**Expected Trace Structure:**
+**Expected trace structure:**
 ```
 natty.request (Root Span - HTTP Request: GET /produce)
 ├── vertx.route_handler (Producer handling)
@@ -275,7 +275,7 @@ natty.request (Root Span - HTTP Request: GET /produce)
     └── consumer.process_business_logic (Consumer business logic)
 ```
 
-**Expected Trace Attributes:**
+**Expected trace attributes:**
 - **Service names**: `producer-service`, `consumer-service`
 - **Operation names**: `http.produce`, `producer.send_message`, `consumer.process_message`
 - **Custom attributes**: `message.type`, `message.destination`, `reply.success`
@@ -283,7 +283,7 @@ natty.request (Root Span - HTTP Request: GET /produce)
 
 ## 🔧 Debugging
 
-### Check Datadog Agent Connectivity
+### Check Datadog agent connectivity
 ```bash
 # Verify agent is receiving traces
 curl http://localhost:8126/info
@@ -293,7 +293,7 @@ curl http://localhost:8126/info
 docker logs datadog-agent | grep -i trace
 ```
 
-### View Application Logs
+### View application logs
 ```bash
 # Producer logs
 docker-compose logs -f producer-app
@@ -305,14 +305,14 @@ docker-compose logs -f consumer-app
 docker-compose logs -f
 ```
 
-### Common Issues
+### Common issues
 
 1. **No Traces in Datadog**: Check agent connectivity and API key
 2. **Broken traces**: Verify trace context injection/extraction
 3. **Missing spans**: Check that spans are properly ended in `finally` blocks
 4. **Wrong service names**: Ex verify `DD_SERVICE` environment variables
 
-## Expected Datadog Metrics
+## Expected Datadog metrics
 
 Once running successfully, you should see:
 
@@ -322,7 +322,7 @@ Once running successfully, you should see:
 - **Error rate**: Success/failure rates for distributed operations
 - **Service map**: Visual representation of producer → consumer communication
 
-## Success Criteria
+## Success criteria
 
 ✅ **Containers running**: Both services start without errors  
 ✅ **HTTP endpoints**: All endpoints respond correctly  
