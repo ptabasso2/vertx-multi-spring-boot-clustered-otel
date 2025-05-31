@@ -1,6 +1,6 @@
 # Vert.x distributed tracing with Datadog and the OpenTelemetry API
 
-This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **DataDog** with **OpenTelemetry API** for trace context propagation.
+This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **Datadog** with **OpenTelemetry API** for trace context propagation.
 
 ## Architecture overview
 
