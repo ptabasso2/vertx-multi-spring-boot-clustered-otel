@@ -267,11 +267,12 @@ Consumer sent reply with trace context: {
 
 **Expected Trace Structure:**
 ```
-http.produce (Root Span - HTTP Request)
-├── producer.handle_trigger (Producer handling)
+natty.request (Root Span - HTTP Request: GET /produce)
+├── vertx.route_handler (Producer handling)
 ├── producer.send_message (Event bus send)
+...
 └── consumer.process_message (Consumer processing)
-    └── consumer.process_business_logic (Business logic)
+    └── consumer.process_business_logic (Consumer business logic)
 ```
 
 **Expected Trace Attributes:**
