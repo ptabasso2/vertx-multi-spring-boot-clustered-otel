@@ -80,7 +80,7 @@ Now when you hit http://localhost:8080/produce, it will properly trigger your Pr
 
 ```bash
 [root@pt-instance-2:~/]$ git clone https://github.com/ptabasso2/vertx-multi-spring-boot-clustered-otel 
-[root@pt-instance-6:~/]$ cd vertx-multi-spring-boot-clustered-otel
+[root@pt-instance-2:~/]$ cd vertx-multi-spring-boot-clustered-otel
 ````
 
 
