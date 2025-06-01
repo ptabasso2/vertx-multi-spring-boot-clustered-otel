@@ -149,7 +149,7 @@ Span consumerSpan = tracer.spanBuilder("consumer.process_message")
     .startSpan();
 ```
 
-### 4. Datadog agent integration
+### 4. Datadog java agent set up
 Applications run with the Datadog java agent for automatic instrumentation and the custom instrumentation part is done using the OpenTelemetry API:
 
 ```docker-compose.yml
@@ -325,7 +325,7 @@ natty.request (Root Span - HTTP Request: GET /produce)
 ```
 
 **Expected trace attributes:**
-- **Service names**: `producer-service`, `consumer-service`
+- **Service names**: `producer-app`, `consumer-app`
 - **Operation names**: `http.produce`, `producer.send_message`, `consumer.process_message`
 - **Custom attributes**: `message.type`, `message.destination`, `reply.success`
 - **Trace ID**: Same across all spans (e.g., `4bf92f3577b34da6a3ce929d0e0e4736`)
