@@ -1,3 +1,10 @@
+![GitHub License](https://img.shields.io/github/license/ptabasso2/vertx-multi-spring-boot-clustered-otel
+)
+![GitHub Release](https://img.shields.io/github/v/release/ptabasso2/vertx-multi-spring-boot-clustered-otel
+)
+![GitHub last commit](https://img.shields.io/github/last-commit/ptabasso2/vertx-multi-spring-boot-clustered-otel
+)
+
 # Vert.x distributed tracing with Datadog and the OpenTelemetry API
 
 This project demonstrates distributed tracing across microservices using **Vert.x**, **Spring Boot**, **Hazelcast clustering**, and **Datadog** with **OpenTelemetry API** for trace context propagation.
