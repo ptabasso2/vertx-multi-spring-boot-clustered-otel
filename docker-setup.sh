@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Docker Setup Script for Vert.x Clustered Applications
-# Place this file in: vertx-multi-spring-boot-clustered/docker-setup.sh
+# vertx-multi-spring-boot-clustered/docker-setup.sh
 
 set -e  # Exit on any error
 

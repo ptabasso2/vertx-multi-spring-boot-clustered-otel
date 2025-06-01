@@ -1,5 +1,5 @@
 # Producer Docker Configuration
-# Place this file in: producer-app/src/main/resources/application-docker.yml
+# producer-app/src/main/resources/application-docker.yml
 
 spring:
   application:
@@ -17,8 +17,6 @@ logging:
     root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-  # Remove file logging to avoid permission issues
-  # Docker will capture console output anyway
 
 # Hazelcast configuration for Docker networking
 hazelcast:

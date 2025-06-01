@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Minimal, error-free configuration - Place this in: src/main/resources/logback-spring.xml -->
+<!-- Minimal, error-free configuration - src/main/resources/logback-spring.xml -->
 <configuration>
     <!-- Console appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

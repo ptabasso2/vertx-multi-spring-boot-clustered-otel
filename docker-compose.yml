@@ -1,5 +1,5 @@
 # Docker Compose for Vert.x Clustered Applications
-# Place this file in: vertx-multi-spring-boot-clustered/docker-compose.yml
+# vertx-multi-spring-boot-clustered/docker-compose.yml
 
 version: '3.8'
 

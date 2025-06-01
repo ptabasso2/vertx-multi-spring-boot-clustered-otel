@@ -1,5 +1,5 @@
 # Producer Application Dockerfile
-# Place this file in: producer-app/Dockerfile
+# producer-app/Dockerfile
 
 # Use OpenJDK 17 as base image
 FROM openjdk:17-jdk-slim

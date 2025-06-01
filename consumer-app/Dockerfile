@@ -1,5 +1,5 @@
 # Consumer Application Dockerfile
-# Place this file in: consumer-app/Dockerfile
+# consumer-app/Dockerfile
 
 # Use OpenJDK 17 as base image
 FROM openjdk:17-jdk-slim
