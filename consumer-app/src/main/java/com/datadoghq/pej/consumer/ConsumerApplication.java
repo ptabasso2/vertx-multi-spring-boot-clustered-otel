@@ -4,6 +4,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.tracing.opentelemetry.OpenTelemetryOptions;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -28,6 +29,7 @@ public class ConsumerApplication {
             VertxOptions options = new VertxOptions()
                     .setWorkerPoolSize(20)
                     .setEventLoopPoolSize(4)
+                    .setTracingOptions(new OpenTelemetryOptions())
                     .setHAEnabled(true)
                     .setQuorumSize(1);
 
