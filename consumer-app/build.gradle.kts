@@ -21,7 +21,7 @@ dependencyManagement {
     overriddenByDependencies(false)
     imports {
         mavenBom("io.netty:netty-bom:4.1.121.Final")
-        mavenBom("io.opentelemetry:opentelemetry-bom:1.42.1")
+        mavenBom("io.opentelemetry:opentelemetry-bom:1.50.0")
     }
 }
 
