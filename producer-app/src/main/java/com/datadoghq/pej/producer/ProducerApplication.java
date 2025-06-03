@@ -4,6 +4,8 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.tracing.TracingOptions;
+import io.vertx.tracing.opentelemetry.OpenTelemetryOptions;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -24,30 +26,37 @@ public class ProducerApplication {
 
     @Bean
     public ApplicationRunner runner(ProducerVerticle producerVerticle) {  // Autowire the verticle directly
-        return args -> {
-            VertxOptions options = new VertxOptions()
-                    .setWorkerPoolSize(20)
-                    .setEventLoopPoolSize(4)
-                    .setHAEnabled(true)
-                    .setQuorumSize(1);
+    return args -> {
+      VertxOptions options =
+          new VertxOptions()
+              .setWorkerPoolSize(20)
+              .setEventLoopPoolSize(4)
+              .setTracingOptions(new OpenTelemetryOptions())
+              .setHAEnabled(true)
+              .setQuorumSize(1);
 
-            Vertx.clusteredVertx(options)
-                    .onSuccess(vertx -> {
-                        System.out.println("Producer - Clustered Vert.x instance created with tracing");
+      Vertx.clusteredVertx(options)
+          .onSuccess(
+              vertx -> {
+                System.out.println("Producer - Clustered Vert.x instance created with tracing");
 
-                        // Use the autowired ProducerVerticle
-                        vertx.deployVerticle(producerVerticle)
-                                .onSuccess(id -> System.out.println("ProducerVerticle deployed: " + id));
+                // Use the autowired ProducerVerticle
+                vertx
+                    .deployVerticle(producerVerticle)
+                    .onSuccess(id -> System.out.println("ProducerVerticle deployed: " + id));
 
-                        vertx.deployVerticle(new GreetingVerticle())
-                                .onSuccess(id -> System.out.println("GreetingVerticle deployed: " + id));
-                        vertx.deployVerticle(new HttpServerVerticle())
-                                .onSuccess(id -> System.out.println("HttpServerVerticle deployed: " + id));
-                    })
-                    .onFailure(err -> {
-                        System.err.println("Failed to start clustered Vert.x: " + err.getMessage());
-                        err.printStackTrace();
-                    });
-        };
+                vertx
+                    .deployVerticle(new GreetingVerticle())
+                    .onSuccess(id -> System.out.println("GreetingVerticle deployed: " + id));
+                vertx
+                    .deployVerticle(new HttpServerVerticle())
+                    .onSuccess(id -> System.out.println("HttpServerVerticle deployed: " + id));
+              })
+          .onFailure(
+              err -> {
+                System.err.println("Failed to start clustered Vert.x: " + err.getMessage());
+                err.printStackTrace();
+              });
+    };
     }
 }

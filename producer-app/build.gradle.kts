@@ -28,6 +28,7 @@ dependencyManagement {
 dependencies {
     implementation("io.vertx:vertx-core:4.5.10")
     implementation("io.vertx:vertx-web:4.5.10")
+    implementation("io.vertx:vertx-opentelemetry:4.5.10")
     implementation("io.vertx:vertx-hazelcast:4.5.10")
     implementation("com.hazelcast:hazelcast:5.5.0")
     implementation("org.springframework.boot:spring-boot-starter:3.5.0")

@@ -78,14 +78,6 @@ public class ProducerVerticle extends AbstractVerticle {
                     .put("payload", "Hello from Producer!")
                     .put("timestamp", System.currentTimeMillis());
 
-            // Inject current trace context into the message
-            Context currentContext = Context.current();
-            openTelemetry.getPropagators()
-                    .getTextMapPropagator()
-                    .inject(currentContext, messagePayload, SETTER);
-
-            System.out.println("Injected trace context into message: " + messagePayload.encodePrettily());
-
             // Send message with trace context to consumer
             vertx.eventBus().<JsonObject>request("consumer.message", messagePayload)
                     .onSuccess(reply -> {
