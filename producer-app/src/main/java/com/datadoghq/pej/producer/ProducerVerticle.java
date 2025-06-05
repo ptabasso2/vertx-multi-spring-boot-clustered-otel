@@ -8,8 +8,8 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.JsonObject;
-import org.springframework.stereotype.Component;
+import io.vertx.core.eventbus.DeliveryOptions;import io.vertx.core.json.JsonObject;
+import io.vertx.core.tracing.TracingPolicy;import org.springframework.stereotype.Component;
 
 @Component
 public class ProducerVerticle extends AbstractVerticle {
@@ -37,10 +37,11 @@ public class ProducerVerticle extends AbstractVerticle {
 
             try (Scope scope = triggerSpan.makeCurrent()) {
                 triggerMessage();
+                DeliveryOptions options = new DeliveryOptions().setTracingPolicy(TracingPolicy.ALWAYS);
 
                 // Reply back to confirm the action
                 String replyMessage = "Message triggered successfully";
-                message.reply(replyMessage);
+                message.reply(replyMessage, options);
 
                 triggerSpan.setAttribute("reply.message", replyMessage);
                 triggerSpan.setAttribute("reply.success", true);
