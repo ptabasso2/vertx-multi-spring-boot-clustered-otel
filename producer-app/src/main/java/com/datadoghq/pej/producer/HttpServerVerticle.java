@@ -2,6 +2,8 @@ package com.datadoghq.pej.producer;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.tracing.TracingPolicy;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -42,8 +44,9 @@ public class HttpServerVerticle extends AbstractVerticle {
 
         router.get("/produce").handler(ctx -> {
             // REQUEST - sends a message and expects a reply
+            DeliveryOptions options = new DeliveryOptions().setTracingPolicy(TracingPolicy.ALWAYS);
             vertx.eventBus()
-                    .<String>request("producer.trigger", "")
+                    .<String>request("producer.trigger", "", options)
                     .onSuccess(reply -> {
                         ctx.response().end("Triggered producer verticle: " + reply.body());
                     })

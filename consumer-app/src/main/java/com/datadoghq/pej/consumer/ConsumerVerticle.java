@@ -6,8 +6,10 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.propagation.TextMapGetter;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.MultiMap;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,13 +34,33 @@ public class ConsumerVerticle extends AbstractVerticle {
               JsonObject messageBody = message.body();
 
               System.out.println("Consumer received message: " + messageBody.encodePrettily());
+
+              // Extract trace context from message headers
+              Context extractedContext = Context.current();
+              if (message.headers() != null) {
+                extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                    .extract(Context.current(), message.headers(), new TextMapGetter<MultiMap>() {
+                      @Override
+                      public Iterable<String> keys(MultiMap carrier) {
+                        return carrier.names();
+                      }
+
+                      @Override
+                      public String get(MultiMap carrier, String key) {
+                        return carrier.get(key);
+                      }
+                    });
+              }
+
               // Create a span with the extracted context as parent
-              Span consumerSpan =
-                  tracer
-                      .spanBuilder("consumer.process_message")
-                      .setAttribute("message.address", "consumer.message")
-                      .setAttribute("service.name", "consumer-app")
-                      .startSpan();
+              Span consumerSpan;
+              try (Scope scope = extractedContext.makeCurrent()) {
+                consumerSpan = tracer
+                    .spanBuilder("consumer.process_message")
+                    .setAttribute("message.address", "consumer.message")
+                    .setAttribute("service.name", "consumer-app")
+                    .startSpan();
+              }
 
               try (Scope scope = consumerSpan.makeCurrent()) {
                 String messageType = messageBody.getString("messageType", "UNKNOWN");
